@@ -1,0 +1,97 @@
+---
+title: "Machine Learning - Course Project"
+author: "Alexander Dumer"
+date: "Sunday, August 23, 2015"
+output: html_document
+---
+
+
+```{r}
+library(Hmisc)
+library(caret)
+library(randomForest)
+```
+
+#Loading the data#
+###Here, we load the training data set, in which I replace DIV/0 values with NA's. In addition, after going through all columns, I keep only those which have numeric values for all observations. Many columns with blanks or NAs are eliminated from this analysis, and thus only variables with predictive values are kept.This eliminates about 2/3 of all columns.###
+```{r}
+training <- read.csv("C:/Alex/Coursera/Prac Machine Learning/pml-training.csv", na.strings = c('NA', '#DIV/0!'))
+training <- training[,c("num_window",
+"roll_belt",
+"pitch_belt",
+"yaw_belt",
+"gyros_belt_x",
+"gyros_belt_y",  
+"gyros_belt_z",	
+"accel_belt_x",	
+"accel_belt_y",	
+"accel_belt_z",	
+"magnet_belt_x",	
+"magnet_belt_y",	
+"magnet_belt_z",	
+"roll_arm",	
+"pitch_arm",	
+"yaw_arm",	
+"total_accel_arm",
+"gyros_arm_x",	
+"gyros_arm_y",	
+"gyros_arm_z",	
+"accel_arm_x",	
+"accel_arm_y",	
+"accel_arm_z",	
+"magnet_arm_x",	
+"magnet_arm_y",	
+"magnet_arm_z",
+"roll_dumbbell",	
+"pitch_dumbbell",	
+"yaw_dumbbell",
+"total_accel_dumbbell",
+"gyros_dumbbell_x",	
+"gyros_dumbbell_y",	
+"gyros_dumbbell_z",	
+"accel_dumbbell_x",	
+"accel_dumbbell_y",	
+"accel_dumbbell_z",	
+"magnet_dumbbell_x",	
+"magnet_dumbbell_y",	
+"magnet_dumbbell_z",	
+"roll_forearm",	
+"pitch_forearm",	
+"yaw_forearm",
+"total_accel_forearm",
+"gyros_forearm_x",	
+"gyros_forearm_y",	
+"gyros_forearm_z",	
+"accel_forearm_x",	
+"accel_forearm_y",	
+"accel_forearm_z",	
+"magnet_forearm_x",	
+"magnet_forearm_y",	
+"magnet_forearm_z",	
+"classe")]
+```
+
+#Machine Learning Algorithm#
+###Next, we set the seed and use cross-validation for our model. In this case, I decided to use 30%, as this is somewhat standard. "Train" and "Validation" datasets are created. The model that is used for this exercise is a random forest, which is necessitated by the large number of variables.###
+```{r}
+set.seed(1234567)
+inTrain <- createDataPartition(y = training$classe, p = 0.7, list = F)
+train <- training[inTrain,]
+validation <- training[-inTrain,]
+
+preProcess <- preProcess(train[, c(1:52)], method="pca", pcaComp="30")
+train_pred <- predict(preProcess, train[, c(1:52)])
+
+fit <- randomForest(train$classe ~ ., data = train_pred, ntree=100)
+
+validation_pred <- predict(preProcess, validation[, c(1:52)])
+prediction <- predict(fit, validation_pred)
+
+confusionMatrix(prediction, validation$classe)
+```
+
+###We can see that the out-of-sample error is approximately 2.5%. Thus, the model produces correct results roughly 975 out of 1000 times.###
+
+
+
+
